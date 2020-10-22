@@ -3,6 +3,6 @@
 #include "new_lib.c"
 
 int main() {
-    new_printf("abcdef");
+    new_printf("abcdefghbnuyhnguy");
     new_exit();
 }
