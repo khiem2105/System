@@ -2,6 +2,7 @@
 #include "string.h"
 #include "stdio.h"
 #include "fs.h"
+#include "errno.h"
 
 void print(int);
 int get_num_inode(int, char*);
@@ -75,17 +76,44 @@ int main() {
 
   // Recup�rer un num�ro d'i-noeud pour un nom de fichier
   // dans un r�pertoire dont on donne le num�ro d'i-noeud
-  //int numero_inoeud = get_num_inode(1, "a.txt");
-  //printf("Num�ro de l'i-noeud pour a.txt dans le r�pertoire d'i-noeud 1: %i\n", numero_inoeud);
+  int numero_inoeud = get_num_inode(1, "a.txt");
+  printf("Numero de l'i-noeud pour a.txt dans le repertoire d'i-noeud 1: %i\n", numero_inoeud);
 }
 
 void print(int num_inode) {
+  if(bitmap_inode[num_inode] == 0) {
+    perror("Numero d'inoeud invalid !");
+    return;
+  }
+  if(table[num_inode].type == 0) {
+    perror("C'est un repertoire");
+    return;
+  }
+
   inode node = table[num_inode];
+
   for(int i = 1; i <= node.num_bloc[0]; i++)
     printf("%s", blocs[node.num_bloc[i]]);
 }
 
 int get_num_inode(int num_inode_root, char *name) {
+  if(bitmap_inode[num_inode_root] == 0) {
+    perror("Numero d'inoeud invalid !");
+    return -1;
+  }
+  if(table[num_inode_root].type == 1) {
+    perror("C'est un fichier");
+    return -1;
+  }
   inode root = table[num_inode_root];
-  
+  for(int i = 1; i <= root.num_bloc[0]; i++) {
+    char *pos = strstr(blocs[root.num_bloc[i]], name);
+    if(pos != NULL) {
+      int val;
+      sscanf(pos + strlen(name) + 1, "%i", &val);
+      return val;
+    }
+  }
+  return -1;
 }
+

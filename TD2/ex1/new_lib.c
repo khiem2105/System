@@ -18,6 +18,10 @@ void new_printf(char *input) {
         //Au premier appel, initialiser le tampon
         if(ind == -1) {
             if((buffer = new_malloc(BUF_SIZE)) != NULL) ind ++;
+            else { 
+                perror("Erreur initialiser le buffer");
+                exit(EXIT_FAILURE);
+            }    
         }
         //Placer la prochaine caractere dans le tampon
         buffer[ind] = input[i];
