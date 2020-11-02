@@ -38,7 +38,7 @@ void new_printf(char *input) {
 }
 
 void new_exit() {
-    //En quittant, afficher tous ceux qui restent dans le tampon à l'écran
+    //En quittant, afficher tous ceux qui restent dans le tampon (avec index < ind) à l'écran
     if(ind != 0) {
         if(syscall(SYS_write, STDOUT_FILENO, buffer, ind) == -1) {
                 perror("Erreur afficher le contenu du tampon");

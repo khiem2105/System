@@ -59,8 +59,7 @@ void print_stat(const char *ref, struct stat *statut) {
            (int)statut->st_nlink, pws, grs, (int)statut->st_size, temps, ref);
 }
 
-//Fonction pour calculer le nombre total de bloc utilisé dans le repertoire
-int nb_bloc_calculer(const char *dirname) {
+int print_stat_dir(const char *dirname) {
     DIR *dirp;
     struct dirent *dp;
     int nb_bloc;
@@ -74,6 +73,7 @@ int nb_bloc_calculer(const char *dirname) {
         perror("Error changing directory");
         return -1;
     }
+    //Compter le nombre total de bloc utilisé dans le repertoire
     while((dp = readdir(dirp))) {
         struct stat statut;
         if(dp->d_name[0] != '.') {
@@ -84,24 +84,14 @@ int nb_bloc_calculer(const char *dirname) {
             nb_bloc += statut.st_blocks;
         }
     }
-    nb_bloc = nb_bloc / 2; // Parce que le taille de bloc utilisée comme le unit of st_blocks est 512 octets
-    return nb_bloc;
-}
-
-int print_stat_dir(const char *dirname) {
-    DIR *dirp;
-    struct dirent *dp;
-    //Ouvrir le repertoire dirname
+    nb_bloc = nb_bloc / 2; //Parce que le taille de bloc utilisée comme le unit of st_blocks est 512 octets
+    printf("Total:%d\n", nb_bloc);
+    closedir(dirp);
+    //Reouvrir le repertoire et lister des informations des fichiers
     if((dirp = opendir(dirname)) == NULL) {
         perror("Could not open directory");
         return -1;
     }
-    //Changer le repertoire courant à dirname
-    if(chdir(dirname) == -1) {
-        perror("Error changing directory");
-        return -1;
-    }
-    printf("Total:%d\n", nb_bloc_calculer(dirname));
     //Lire le repertoire dirname
     while((dp = readdir(dirp))) {
         struct stat statut;
@@ -121,5 +111,6 @@ int print_stat_dir(const char *dirname) {
         perror("Error reading directory");
         return -1;
     }
+    closedir(dirp);
     return 0;
 }
