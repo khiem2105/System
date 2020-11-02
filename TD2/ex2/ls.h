@@ -9,6 +9,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <errno.h>
+#include <math.h>
 
 extern int errno;
 
@@ -58,6 +59,35 @@ void print_stat(const char *ref, struct stat *statut) {
            (int)statut->st_nlink, pws, grs, (int)statut->st_size, temps, ref);
 }
 
+//Fonction pour calculer le nombre total de bloc utilisé dans le repertoire
+int nb_bloc_calculer(const char *dirname) {
+    DIR *dirp;
+    struct dirent *dp;
+    int nb_bloc;
+    //Ouvrir le repertoire dirname
+    if((dirp = opendir(dirname)) == NULL) {
+        perror("Could not open directory");
+        return -1;
+    }
+    //Changer le repertoire courant à dirname
+    if(chdir(dirname) == -1) {
+        perror("Error changing directory");
+        return -1;
+    }
+    while((dp = readdir(dirp))) {
+        struct stat statut;
+        if(dp->d_name[0] != '.') {
+            if(lstat(dp->d_name, &statut) == -1) {
+                fprintf(stderr, "Impossible d'obtenir le statut de %s\n", dp->d_name);
+                continue;
+                }
+            nb_bloc += statut.st_blocks;
+        }
+    }
+    nb_bloc = nb_bloc / 2; // Parce que le taille de bloc utilisée comme le unit of st_blocks est 512 octets
+    return nb_bloc;
+}
+
 int print_stat_dir(const char *dirname) {
     DIR *dirp;
     struct dirent *dp;
@@ -71,17 +101,20 @@ int print_stat_dir(const char *dirname) {
         perror("Error changing directory");
         return -1;
     }
+    printf("Total:%d\n", nb_bloc_calculer(dirname));
     //Lire le repertoire dirname
     while((dp = readdir(dirp))) {
         struct stat statut;
         
-        if(lstat(dp->d_name, &statut) == -1) {
-            fprintf(stderr, "Impossible d'obtenir le statut de %s\n", dp->d_name);
-            continue;
+        if(dp->d_name[0] != '.') { // Ne compte pas les fichiers commencés par .
+            if(lstat(dp->d_name, &statut) == -1) {
+                fprintf(stderr, "Impossible d'obtenir le statut de %s\n", dp->d_name);
+                continue;
+            }
+            //Lister des fichiers grâce à la fonction print_stat déjà définie
+            print_stat(dp->d_name, &statut);
+            printf("\n");
         }
-        //Lister des fichiers grâce à la fonction print_stat déjà définie
-        print_stat(dp->d_name, &statut);
-        printf("\n");
     }
     //Gestion des erreur
     if(errno != 0){
@@ -89,4 +122,4 @@ int print_stat_dir(const char *dirname) {
         return -1;
     }
     return 0;
-}            
+}
