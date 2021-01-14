@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
+// test git
+
 #define BUFLEN 512
 
 int read_command(char *command, char *args[], char *fdest) {
